@@ -3,6 +3,7 @@ import tkinter
 
 import numpy as np
 import matplotlib
+from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
@@ -73,7 +74,6 @@ def generer_zone_visible(pas_de_phase_radians: float, distance_element: float, l
     af = calculer_facteur_reseau(psi, n_elem, amplitudes)
     ylim = sum(amplitudes)
     x1, x2 = borne_zone_visible(pas_de_phase_radians, distance_element, lmbda)
-    print(x1, x2, ylim)
     return {
         "max": ylim,
         "data": [
@@ -131,8 +131,6 @@ class MainFrame(tk.Frame):
         Fenêtre principale de tkinter
         """
         tk.Frame.__init__(self, main_window)
-        label = tk.Label(self, text="Déphasage signal", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
         self.main = main_window
 
         # labels
@@ -142,14 +140,14 @@ class MainFrame(tk.Frame):
         self.label_pas_de_phase = tk.Label(self.main, text="pas de déphasage (degrés)")
 
         # stringvar
-        self.stringvar_distance_element = tk.StringVar(value="0.05")
-        self.stringvar_frequence = tk.StringVar(value="3")
+        self.stringvar_distance_element = tk.StringVar(value="0.11")
+        self.stringvar_frequence = tk.StringVar(value="3.5")
         self.stringvar_frequence.trace("w",
                                        lambda name, index, mode, sv=self.stringvar_frequence:
                                        maj_stringvar(sv,
                                                      self.stringvar_longeur_onde,
                                                      lambda x: 3e8 / (float(x) * 1e9)))
-        self.stringvar_longeur_onde = tk.StringVar(value="0.05")
+        self.stringvar_longeur_onde = tk.StringVar(value=str(3e8/3.5e9))
         self.stringvar_pas_de_phase = tk.StringVar(value="0")
 
         # button
@@ -191,6 +189,8 @@ class MainFrame(tk.Frame):
         axe.set_xlim(left=np.pi, right=0, auto=False)  # gestion des limites angulaires
         axe.set_rlabel_position(-22.5)
         axe.set_yticklabels([])
+        # axe.title("dépointage")
+
 
     def maj_figure_angulaire(self, pas_de_phase_radians: float, distance_element: float, lmbda: float) -> None:
         """
@@ -206,6 +206,7 @@ class MainFrame(tk.Frame):
                 pas_de_phase_radians, distance_element,
                 lmbda):
             axe.plot(x, y, color=color)
+        axe.set_title("dépointage")
 
         self.canvas_secteur_angulaire.draw()
 
@@ -218,6 +219,7 @@ class MainFrame(tk.Frame):
         plotter.clear()
         plotter.set_xlabel("psi (degrés)")
         plotter.set_ylabel("AF")
+        plotter.set_title("zone visible")
 
     def maj_figure_zone_visible(self, pas_de_phase_radians: float, distance_element: float, lmbda: float) -> None:
         """
@@ -263,19 +265,34 @@ class MainFrame(tk.Frame):
         Initialise l'affichage tous les widgets de l'application.
         :return: None
         """
-        self.label_distance_elements.pack()
-        self.entry_distance_element.pack()
-        self.label_frequence.pack()
-        self.entry_frequence.pack()
-        self.label_longueur_onde.pack()
-        self.entry_longeur_onde.pack()
-        self.label_pas_de_phase.pack()
-        self.entry_pas_de_phase.pack()
-        self.bouton_validation.pack()
-        self.bouton_generation_signal.pack()
-        self.bouton_stop_signal.pack()
+        # self.label_distance_elements.pack()
+        # self.entry_distance_element.pack()
+        # self.label_frequence.pack()
+        # self.entry_frequence.pack()
+        # self.label_longueur_onde.pack()
+        # self.entry_longeur_onde.pack()
+        # self.label_pas_de_phase.pack()
+        # self.entry_pas_de_phase.pack()
+        # self.bouton_validation.pack()
+        # self.bouton_generation_signal.pack()
+        # self.bouton_stop_signal.pack()
+        # self.canvas_zone_visible.get_tk_widget().pack()
         # self.canvas_secteur_angulaire.get_tk_widget().pack()
-        self.canvas_zone_visible.get_tk_widget().pack()
+
+
+        self.label_distance_elements.grid(row=0, column=0)
+        self.entry_distance_element.grid(row=1, column=0)
+        self.label_frequence.grid(row=2, column=0)
+        self.entry_frequence.grid(row=3, column=0)
+        self.label_longueur_onde.grid(row=4, column=0)
+        self.entry_longeur_onde.grid(row=5, column=0)
+        self.label_pas_de_phase.grid(row=6, column=0)
+        self.entry_pas_de_phase.grid(row=7, column=0)
+        self.bouton_validation.grid(row=8, column=0)
+        self.bouton_generation_signal.grid(row=9, column=0)
+        self.bouton_stop_signal.grid(row=10, column=0)
+        self.canvas_zone_visible.get_tk_widget().grid(row=11, column=0)
+        self.canvas_secteur_angulaire.get_tk_widget().grid(row=11, column=1)
 
     def start_signaux(self):
         carte = ouverture_carte("169.254.114.9", 0)
@@ -296,9 +313,10 @@ class MainFrame(tk.Frame):
 
 
 if __name__ == "__main__":
+    plt.rcParams["figure.figsize"] = [4, 4]
     main = tk.Tk()
     main_frame = MainFrame(main)
-    main_frame.pack()
+    main_frame.grid()
     main.mainloop()
 # todo: basculer le gestionnaire de position sur grid au lieu de pack
 # todo: commenter le code
