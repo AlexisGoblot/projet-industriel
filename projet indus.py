@@ -43,6 +43,7 @@ def calcul_phase_secteur_angulaire(pas_de_phase_radians: float, distance_element
     Tuple[np.array,
           np.array,
           str]]:
+
     """
     Calcule le dépointage réalisé par les paramètres sélectionnés.
     :param pas_de_phase_radians: pas de phase entre deux éléments du réseau (radians)
@@ -67,19 +68,19 @@ def generer_zone_visible(pas_de_phase_radians: float, distance_element: float, l
     :param n_points: points de traçage.
     :return:
     """
-    theta = np.linspace(-2 * np.pi, 2 * np.pi, n_points)
+    theta = np.linspace(- np.pi/2, np.pi/2, n_points)
     psi = pas_de_phase_radians + (2 * np.pi / lmbda) * distance_element * np.sin(theta)
     af = calculer_facteur_reseau(psi, n_elem, amplitudes)
     ylim = sum(amplitudes)
     x1, x2 = borne_zone_visible(pas_de_phase_radians, distance_element, lmbda)
-    print(x1, x2)
+    print(x1, x2, ylim)
     return {
         "max": ylim,
         "data": [
-            (np.array([x1, x1]), np.array([0, ylim]), "red"),
-            (np.array([x2, x2]), np.array([0, ylim]), "red"),
+            (np.array([x1, x1]), np.array([0, -40]), "red"),
+            (np.array([x2, x2]), np.array([0, -40]), "red"),
             (psi, af, "blue"),
-            (np.array([pas_de_phase_radians, pas_de_phase_radians]), np.array([0, ylim]), "green")]
+            (np.array([pas_de_phase_radians, pas_de_phase_radians]), np.array([0, -40]), "green")]
     }
 
 
@@ -229,12 +230,20 @@ class MainFrame(tk.Frame):
         self.initialisation_figure_zone_visible()
         data = generer_zone_visible(pas_de_phase_radians, distance_element, lmbda)
         axe = self.figure_zone_visible.gca()
-        # axe.set_ylim(0, data["max"])
-        axe.set_ylim(-30, 0)
 
-        for x, y, color in data["data"]:
-            axe.plot(x*180/np.pi, 10 * np.log(y / data["max"]), color=color)
+        #reprocessing data
+        borne_inf, borne_sup, courbe, origine = data["data"]
+        courbe = list(courbe)
+        courbe[1] = 10*np.log(courbe[1]/data["max"])
+        courbe = tuple(courbe)
 
+        #zoom
+        axe.set_ylim(-40, 0)
+        # axe.set_xlim(borne_inf[0][0]*180/np.pi, borne_sup[0][0]*180/np.pi)
+
+        for x, y, color in [borne_inf, borne_sup, courbe, origine]:
+            axe.plot(x*180/np.pi, y, color=color)
+            # axe.plot(x*180/np.pi, y, color=color)
         self.canvas_zone_visible.draw()
 
     def maj_figures(self) -> None:
