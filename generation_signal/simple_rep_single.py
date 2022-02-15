@@ -82,12 +82,7 @@ else:
 
 
 # set samplerate according to the type of card
-if ((lCardType.value & TYP_SERIESMASK) == TYP_M4IEXPSERIES) or ((lCardType.value & TYP_SERIESMASK) == TYP_M4XEXPSERIES):
-    #notre cas
-    spcm_dwSetParam_i64 (hCard, SPC_SAMPLERATE, MEGA(625))
-else:
-    spcm_dwSetParam_i64 (hCard, SPC_SAMPLERATE, MEGA(1))
-spcm_dwSetParam_i32 (hCard, SPC_CLOCKOUT,   0)
+
 
 # setup the mode
 qwChEnable = CHANNEL0|CHANNEL1|CHANNEL2|CHANNEL3 #selection des channels actifs
@@ -171,5 +166,5 @@ dwError = spcm_dwSetParam_i32 (hCard, SPC_M2CMD, M2CMD_CARD_START | M2CMD_CARD_E
 if dwError == ERR_TIMEOUT:
     spcm_dwSetParam_i32 (hCard, SPC_M2CMD, M2CMD_CARD_STOP)
 
-spcm_vClose (hCard);
+spcm_vClose (hCard)
 
