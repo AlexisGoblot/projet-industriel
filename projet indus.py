@@ -6,6 +6,7 @@ import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
+from generation_signal.netbox_api import *
 
 from typing import List, Tuple, Dict, Callable
 
@@ -152,7 +153,8 @@ class MainFrame(tk.Frame):
 
         # button
         self.bouton_validation = tk.Button(self.main, text="valider", command=self.maj_figures)
-        self.bouton_generation_signal = tk.Button(self.main, text="générer signaux")
+        self.bouton_generation_signal = tk.Button(self.main, text="générer signaux", command=self.start_signaux)
+        self.bouton_stop_signal = tk.Button(self.main, text="stopper signaux", command=self.stop_signaux)
 
         # entry
         self.entry_distance_element = tk.Entry(self.main, textvariable=self.stringvar_distance_element)
@@ -262,8 +264,26 @@ class MainFrame(tk.Frame):
         self.entry_pas_de_phase.pack()
         self.bouton_validation.pack()
         self.bouton_generation_signal.pack()
+        self.bouton_stop_signal.pack()
         # self.canvas_secteur_angulaire.get_tk_widget().pack()
         self.canvas_zone_visible.get_tk_widget().pack()
+
+    def start_signaux(self):
+        carte = ouverture_carte("169.254.114.9", 0)
+        type_carte = check_card(carte)
+        init_vitesse_sampling(type_carte, carte)
+        taille_buffer = init_canaux(carte)
+        maj_amplitude(carte)
+        pvBuffer = init_buffer(carte, taille_buffer)
+        pnBuffer = calcul_signaux(pvBuffer)
+        transfert_netbox(carte, pvBuffer, taille_buffer)
+        start(carte)
+        fermeture_carte(carte)
+
+    def stop_signaux(self):
+        carte = ouverture_carte("169.254.114.9", 0)
+        stop(carte)
+        fermeture_carte(carte)
 
 
 if __name__ == "__main__":

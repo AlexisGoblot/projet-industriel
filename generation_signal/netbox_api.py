@@ -155,9 +155,13 @@ def transfert_netbox(hCard, pvBuffer, buffSize):
     sys.stdout.write("... data has been transferred to board memory\n")
 
 
-def start(hCard):
-    # We'll start and wait until the card has finished or until a timeout occurs
-    spcm_dwSetParam_i32(hCard, SPC_TIMEOUT, 10000)
+def stop(hCard):
+    spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_STOP)
+
+
+def start(hCard, timeout=False, timeout_duration=10000):
+    if timeout:
+        spcm_dwSetParam_i32(hCard, SPC_TIMEOUT, 10000)
     sys.stdout.write(
         "\nStarting the card and waiting for ready interrupt\n(continuous and single restart will have timeout)\n")
 
