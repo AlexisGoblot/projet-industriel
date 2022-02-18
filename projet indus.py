@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import tkinter
 
-import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
@@ -57,7 +56,8 @@ def calcul_phase_secteur_angulaire(pas_de_phase_radians: float, distance_element
 
 
 def generer_zone_visible(pas_de_phase_radians: float, distance_element: float, lmbda: float, orientation_cible_radians,
-                         n_elem: int = 4, amplitudes: Tuple[int] = (1, 1, 1, 1), n_points: int = 500) -> Dict:
+                         n_elem: int = 4, amplitudes: Tuple[float, float, float, float] = (1, 1, 1, 1),
+                         n_points: int = 500) -> Dict:
     """
     Calcule les données nécessaires pour l'affichage de la zone visible
     :param pas_de_phase_radians: pas de phase entre deux éléments du réseau (radians)
@@ -113,8 +113,8 @@ def calcul_sinus_analogique(freq_signal, amplitude, phase_radians, facteur_corre
     return temps, sinus
 
 
-def calculer_facteur_reseau(psi: np.array, n_elem: int = 4, amplitudes: Tuple[int] = (1, 1, 1, 1)) \
-        -> np.array:
+def calculer_facteur_reseau(psi: np.array, n_elem: int = 4, amplitudes: Tuple[float, float, float, float] = (1, 1, 1, 1)
+                            ) -> np.array:
     """
     Calcule le module du facteur de réseau en fonction de psi, du nombre d'éléments dans le réseau, ainsi que des
     amplitudes associées aux éléments du réseau.
@@ -217,9 +217,11 @@ class MainFrame(tk.Frame):
         self.bouton_generation_signal = tk.Button(self.main, text="générer signaux", command=self.start_signaux)
         self.bouton_stop_signal = tk.Button(self.main, text="stopper signaux", command=self.stop_signaux)
 
-        #boutons radio
-        self.bouton_radio_sans_filtre = tk.Radiobutton(self.main, variable=self.stringvar_filtres_netbox, text="sans filtre", value="0")
-        self.bouton_radio_filtre_65_mhz = tk.Radiobutton(self.main, variable=self.stringvar_filtres_netbox, text="filtre 65MHz", value="1")
+        # boutons radio
+        self.bouton_radio_sans_filtre = tk.Radiobutton(self.main, variable=self.stringvar_filtres_netbox,
+                                                       text="sans filtre", value="0")
+        self.bouton_radio_filtre_65_mhz = tk.Radiobutton(self.main, variable=self.stringvar_filtres_netbox,
+                                                         text="filtre 65MHz", value="1")
         self.bouton_radio_filtre_65_mhz.select()
 
         # entry
@@ -321,9 +323,11 @@ class MainFrame(tk.Frame):
                       float(self.stringvar_ponderation_3.get()),
                       float(self.stringvar_ponderation_4.get()),
                       )
-        orientation_cible_radians = float(self.stringvar_orientation_cible.get())*np.pi/180
-        orientation_cible_radians = np.sin(orientation_cible_radians)*2*np.pi*distance_element/lmbda + pas_de_phase_radians
-        data = generer_zone_visible(pas_de_phase_radians, distance_element, lmbda, orientation_cible_radians, amplitudes=amplitudes)
+        orientation_cible_radians = float(self.stringvar_orientation_cible.get()) * np.pi / 180
+        orientation_cible_radians = np.sin(
+            orientation_cible_radians) * 2 * np.pi * distance_element / lmbda + pas_de_phase_radians
+        data = generer_zone_visible(pas_de_phase_radians, distance_element, lmbda, orientation_cible_radians,
+                                    amplitudes=amplitudes)
         axe = self.figure_zone_visible.gca()
 
         # reprocessing data
@@ -368,7 +372,7 @@ class MainFrame(tk.Frame):
             courbes.append(signal)
         return tuple([temps] + courbes + [periode])
 
-    def maj_signaux_generes(self, *args, **kwargs) -> None:
+    def maj_signaux_generes(self) -> None:
         self.initialisation_figure_signaux_generes()
         data = self.obtention_sinus_analogique()
         temps = data[0]
@@ -408,16 +412,16 @@ class MainFrame(tk.Frame):
         self.entry_longeur_onde.grid(row=5, column=0, sticky="wens")
         self.label_pas_de_phase.grid(row=6, column=0, sticky="wens")
 
-        #gros bloc de commandes
+        # gros bloc de commandes
         index_debut_bloc_ligne = 8
-        self.label_phase_1.grid(row=index_debut_bloc_ligne , column=1, sticky="wens")
-        self.entry_phase_1.grid(row=index_debut_bloc_ligne , column=2, sticky="wens")
-        self.label_phase_2.grid(row=index_debut_bloc_ligne , column=3, sticky="wens")
-        self.entry_phase_2.grid(row=index_debut_bloc_ligne , column=4, sticky="wens")
-        self.label_phase_3.grid(row=index_debut_bloc_ligne , column=5, sticky="wens")
-        self.entry_phase_3.grid(row=index_debut_bloc_ligne , column=6, sticky="wens")
-        self.label_phase_4.grid(row=index_debut_bloc_ligne , column=7, sticky="wens")
-        self.entry_phase_4.grid(row=index_debut_bloc_ligne , column=8, sticky="wens")
+        self.label_phase_1.grid(row=index_debut_bloc_ligne, column=1, sticky="wens")
+        self.entry_phase_1.grid(row=index_debut_bloc_ligne, column=2, sticky="wens")
+        self.label_phase_2.grid(row=index_debut_bloc_ligne, column=3, sticky="wens")
+        self.entry_phase_2.grid(row=index_debut_bloc_ligne, column=4, sticky="wens")
+        self.label_phase_3.grid(row=index_debut_bloc_ligne, column=5, sticky="wens")
+        self.entry_phase_3.grid(row=index_debut_bloc_ligne, column=6, sticky="wens")
+        self.label_phase_4.grid(row=index_debut_bloc_ligne, column=7, sticky="wens")
+        self.entry_phase_4.grid(row=index_debut_bloc_ligne, column=8, sticky="wens")
 
         # self.label_amplitude_1.grid(row=index_debut_bloc_ligne + 1, column=1)
         # self.entry_amplitude_1.grid(row=index_debut_bloc_ligne + 1, column=2)
