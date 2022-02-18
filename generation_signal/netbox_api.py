@@ -14,12 +14,13 @@ def sinus(buffer, size):
     freq_ech = 1e9  # Hz
     dt = 1 / freq_ech  # s
     phase = 0  # radians
-    print(f"pas de temps: {dt}, echantillonnage: {round((1 / dt)) / 1e9}")
+    print(f"pas de temps: {dt}, echantillonnage: {round((1 / dt)) / 1e9} GHz")
     temps = np.array([i * dt for i in range(taille_buffer)])
     sinus = np.sin(2 * np.pi * freq_signal * temps + phase)
     sinusd = amplitude_max * sinus
     from itertools import chain
     buffer_order = [x for x in chain.from_iterable([[x] * 4 for x in sinusd])]
+    print(buffer_order[4])
     for i, x in enumerate(buffer_order):
         buffer[i] = int(x)
 
@@ -58,17 +59,17 @@ def check_card(hcard):
         raise TypeError("carte non supportée")
 
 
-def init_vitesse_sampling(lCardType, hCard):
+def init_vitesse_sampling(lCardType, hCard, freq_ech_netbox=625):
     if ((lCardType.value & TYP_SERIESMASK) == TYP_M4IEXPSERIES) or (
             (lCardType.value & TYP_SERIESMASK) == TYP_M4XEXPSERIES):
         # notre cas
-        spcm_dwSetParam_i64(hCard, SPC_SAMPLERATE, MEGA(625))
+        spcm_dwSetParam_i64(hCard, SPC_SAMPLERATE, MEGA(freq_ech_netbox))
     else:
         spcm_dwSetParam_i64(hCard, SPC_SAMPLERATE, MEGA(1))
     spcm_dwSetParam_i32(hCard, SPC_CLOCKOUT, 0)
 
 
-def init_canaux(hcard, channels=CHANNEL0 | CHANNEL1 | CHANNEL2 | CHANNEL3):
+def init_canaux(hcard, channels=CHANNEL0 | CHANNEL1 | CHANNEL2 | CHANNEL3, filtres=True):
     qwChEnable = channels  # selection des channels actifs
     llMemSamples = int64(KILO_B(64))
     llLoops = int64(0)  # loop continuously
@@ -82,10 +83,16 @@ def init_canaux(hcard, channels=CHANNEL0 | CHANNEL1 | CHANNEL2 | CHANNEL3):
     spcm_dwSetParam_i64(hcard, SPC_ENABLEOUT2, 1)
     spcm_dwSetParam_i64(hcard, SPC_ENABLEOUT3, 1)
     # filtres sur les sorties
-    spcm_dwSetParam_i64(hcard, SPC_FILTER0, 1)
-    spcm_dwSetParam_i64(hcard, SPC_FILTER1, 1)
-    spcm_dwSetParam_i64(hcard, SPC_FILTER2, 1)
-    spcm_dwSetParam_i64(hcard, SPC_FILTER3, 1)
+    if filtres:
+        spcm_dwSetParam_i64(hcard, SPC_FILTER0, 1)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER1, 1)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER2, 1)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER3, 1)
+    else:
+        spcm_dwSetParam_i64(hcard, SPC_FILTER0, 0)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER1, 0)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER2, 0)
+        spcm_dwSetParam_i64(hcard, SPC_FILTER3, 0)
 
     lSetChannels = int32(0)
     spcm_dwGetParam_i32(hcard, SPC_CHCOUNT, byref(lSetChannels))
@@ -159,15 +166,15 @@ def stop(hCard):
     spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_STOP)
 
 
-def start(hCard, timeout=False, timeout_duration=10000):
+def start(hCard, timeout=True, timeout_duration=100, exit_on_timeout=False):
     if timeout:
-        spcm_dwSetParam_i32(hCard, SPC_TIMEOUT, 10000)
-    sys.stdout.write(
-        "\nStarting the card and waiting for ready interrupt\n(continuous and single restart will have timeout)\n")
+        spcm_dwSetParam_i32(hCard, SPC_TIMEOUT, timeout_duration)
+    # sys.stdout.write(
+    #     "\nStarting the card and waiting for ready interrupt\n(continuous and single restart will have timeout)\n")
 
-    dwError = spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_START | M2CMD_CARD_ENABLETRIGGER | M2CMD_CARD_WAITREADY)
-
-    if dwError == ERR_TIMEOUT:
+    # dwError = spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_START | M2CMD_CARD_ENABLETRIGGER | M2CMD_CARD_WAITREADY)
+    dwError = spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_START |M2CMD_CARD_ENABLETRIGGER)
+    if exit_on_timeout and dwError == ERR_TIMEOUT:
         spcm_dwSetParam_i32(hCard, SPC_M2CMD, M2CMD_CARD_STOP)
 
 
@@ -180,7 +187,7 @@ if __name__ == "__main__":
     pvBuffer = init_buffer(carte, taille_buffer)
     pnBuffer = calcul_signaux(pvBuffer)
     transfert_netbox(carte, pvBuffer, taille_buffer)
-    start(carte)
+    start(carte, timeout=True)
     fermeture_carte(carte)
 
 #
