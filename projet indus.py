@@ -52,6 +52,7 @@ def calcul_phase_secteur_angulaire(pas_de_phase_radians: float, distance_element
     """
     phase_radians = np.arcsin(-pas_de_phase_radians / (2 * np.pi * distance_element / lmbda))
     phase_radians += np.pi / 2  # orgine en haut pas a droite
+    print(f"dépointage réalisé: {(phase_radians-np.pi/2)*180/np.pi}")
     return [(np.array([phase_radians, phase_radians]), np.array([0, 1]), "g")]
 
 
@@ -72,6 +73,7 @@ def generer_zone_visible(pas_de_phase_radians: float, distance_element: float, l
     theta = np.linspace(- np.pi / 2, np.pi / 2, n_points)
     psi = pas_de_phase_radians + (2 * np.pi / lmbda) * distance_element * np.sin(theta)
     af = calculer_facteur_reseau(psi, n_elem, amplitudes)
+    print(f"perte au niveau de la cible:{calculer_facteur_reseau(np.array([orientation_cible_radians]), n_elem, amplitudes)}")
     ylim = sum(amplitudes)
     x1, x2 = borne_zone_visible(pas_de_phase_radians, distance_element, lmbda)
     return {
@@ -102,8 +104,6 @@ def calcul_sinus_analogique(freq_signal, amplitude, phase_radians, facteur_corre
     dt = 1 / freq_ech  # s
 
     freq_signal = facteur_correction * freq_signal
-    print(f"freq signal corrigé:{freq_signal}")
-    print(f"pas de temps: {dt}, periode:{1 / freq_signal}")
 
     # échelle des temps
     temps = np.array([i * dt for i in range(taille_buffer)])
@@ -126,7 +126,7 @@ def calculer_facteur_reseau(psi: np.array, n_elem: int = 4, amplitudes: Tuple[fl
     af = amplitudes[0] * np.exp(0 * 1j * psi)
     for i in range(1, n_elem):
         af += amplitudes[i] * np.exp(i * 1j * psi)
-    return np.abs(af)
+    return 20*np.log10(np.abs(af/sum(amplitudes)))
 
 
 def maj_stringvar(stringvar1: tkinter.StringVar, stringvar2: tkinter.StringVar, fonction: Callable) -> None:
@@ -177,14 +177,14 @@ class MainFrame(tk.Frame):
 
         # stringvar
         self.stringvar_distance_element = tk.StringVar(value="0.11")
-        self.stringvar_frequence = tk.StringVar(value="3.5")
+        self.stringvar_frequence = tk.StringVar(value="3.578711")
         self.stringvar_frequence.trace("w",
                                        lambda name, index, mode, sv=self.stringvar_frequence:
                                        maj_stringvar(sv,
                                                      self.stringvar_longeur_onde,
                                                      lambda x: 3e8 / (float(x) * 1e9)))
 
-        self.stringvar_longeur_onde = tk.StringVar(value=str(3e8 / 3.5e9))
+        self.stringvar_longeur_onde = tk.StringVar(value=str(3e8 / 3.578711e9))
         self.stringvar_pas_de_phase = tk.StringVar(value="0")
         self.stringvar_pas_de_phase.trace("w",
                                           lambda name, index, mode, sv=self.stringvar_pas_de_phase:
@@ -332,9 +332,6 @@ class MainFrame(tk.Frame):
 
         # reprocessing data
         borne_inf, borne_sup, courbe, origine, orientation_cible = data["data"]
-        courbe = list(courbe)
-        courbe[1] = 10 * np.log(courbe[1] / data["max"])
-        courbe = tuple(courbe)
 
         # zoom
         axe.set_ylim(-40, 0)
@@ -488,6 +485,7 @@ class MainFrame(tk.Frame):
         return niveaux
 
     def start_signaux(self):
+        self.maj_figures()
         carte = ouverture_carte("169.254.114.9", 0)
         type_carte = check_card(carte)
         init_vitesse_sampling(type_carte, carte)
