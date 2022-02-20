@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
-from generation_signal.netbox_api import *
+from netbox_api import *
 from itertools import chain
 from typing import List, Tuple, Dict, Callable
 

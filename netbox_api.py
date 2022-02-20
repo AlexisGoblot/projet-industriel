@@ -1,5 +1,5 @@
-from generation_signal.pyspcm import *
-from generation_signal.spcm_tools import *
+from pyspcm import *
+from spcm_tools import *
 import sys
 import numpy as np
 
