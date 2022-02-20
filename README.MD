@@ -1,4 +1,4 @@
-###Antennes RF avec matériaux composites
+### Antennes RF avec matériaux composites
 <div style="text-align: justify"> 
 Ceci est le dépot de code pour l'interface graphique réalisée dans le cadre du projet industriel nommé <b><i>"Antennes RF avec matériaux composites"</i></b> réalisé en partenariat avec <b><i>ECT</i></b>. Ce projet porte sur la mise en place d'un démonstrateur utilisant des méthodes de beam forming via l’utilisation d’un réseau d’antennes avec des matériaux composites sur la bande 5G (3.4-3.8GHz). Le but est de montrer la faisabilité de réalisation d'un suivi de terminal connecté dans la plage de portée du réseau d’antennes pour délivrer un signal de manière optimale, sans émettre dans les autres directions.
 </div>
